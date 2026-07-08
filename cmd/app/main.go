@@ -5,16 +5,18 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 
 	"finatext_internship/internal/config"
 	"finatext_internship/internal/db"
 	"finatext_internship/internal/importer"
+	"finatext_internship/internal/server"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: app <import>")
+		fmt.Fprintln(os.Stderr, "usage: app <import|serve>")
 		os.Exit(1)
 	}
 
@@ -24,6 +26,11 @@ func main() {
 	case "import":
 		if err := runImport(); err != nil {
 			fmt.Fprintln(os.Stderr, "import failed:", err)
+			os.Exit(1)
+		}
+	case "serve":
+		if err := runServe(); err != nil {
+			fmt.Fprintln(os.Stderr, "serve failed:", err)
 			os.Exit(1)
 		}
 	default:
@@ -54,4 +61,16 @@ func runImport() error {
 	fmt.Printf("trade_history: imported %d rows\n", n)
 
 	return nil
+}
+
+func runServe() error {
+	conn, err := db.Open()
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	srv := server.New(conn)
+	fmt.Println("listening on :8080")
+	return http.ListenAndServe(":8080", srv)
 }
