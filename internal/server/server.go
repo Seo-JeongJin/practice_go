@@ -13,5 +13,6 @@ import (
 func New(db *sql.DB) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{user_id}/trades", handler.Trades(db))
+	mux.HandleFunc("GET /{user_id}/assets", handler.Assets(db))
 	return mux
 }
